@@ -274,6 +274,9 @@ function msgps_hours_shortcode( $atts = [] ) {
 if ( array_key_exists( "id", $atts ) ) {
     // load location by Id
     $new_location = MSGPS_Location::get_location_by_id( $atts['id'] );
+    if (!$new_location){
+    	return;
+    }
     $new_location->fetch_place_hours();
 
       $locations[] = $new_location;
