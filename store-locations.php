@@ -249,8 +249,11 @@ function msgps_map_shortcode( $atts = [] ) {
   if(!wp_script_is('wp-location-map')) {
     wp_enqueue_script( 'wp-location-map', plugins_url( "js/msgps_map.js", __FILE__ ), array( 'jquery' ) );
   }
-
+  ob_start();
   include('templates/template-locations-map.php');
+  $html = ob_get_contents();
+  ob_end_clean();
+  return $html;
 }
 
 // Shortcode to Output building hours
