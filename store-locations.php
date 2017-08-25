@@ -18,8 +18,11 @@ add_action( 'init', 'msgps_custom_post_type' );//when the plugin is initialized 
 add_action( 'save_post', 'msgps_box_save' ); //when a location is saved - we want this function to be called
 add_action( 'admin_notices', 'msgps_save_notice__error' ); //when admin notices are popped up - we want our fucntion called too.
 
-// Keep add_filter calls grouped up here for easy viewing
-
+// Keep shortcode calls grouped up here for easy viewing.  First parameter is the code, second is the name of the function that does the work.
+add_shortcode( 'msgps_hours', 'msgps_hours_shortcode' );
+add_shortcode( 'msgps_hours_long', 'msgps_hours_long_shortcode' );
+add_shortcode( 'msgps_hours_short', 'msgps_hours_short_shortcode' );
+add_shortcode( 'msgps_hours_today', 'msgps_hours_today_shortcode' );
 
 // Register a custom post type with WordPress
 function msgps_custom_post_type() {
@@ -177,6 +180,7 @@ function msgps_save_notice__error() {
 
 }
 
+// Format address
 function msgps_format_address( $location ) {
   $formatted = "";
   if ( is_array( $location ) ) {
@@ -197,4 +201,93 @@ function msgps_format_address( $location ) {
 // function to geocode address, it will return NULL if unable to geocode address
 function msgps_geocode( $address ) {
   return google_places_api::geocode( $address );
+}
+
+// Shortcode to Output building hours
+function msgps_hours_shortcode( $atts = [] ) {
+  if(empty($atts)){
+    $atts = array();
+  }
+  $defaulted_atts = shortcode_atts( array(
+    "type"  => "long",
+    "style" => "",
+    "class" => ""
+  ), $atts );
+
+  // include the styling for this plugin
+  wp_enqueue_style( "wp-location-css", plugins_url( "css/msgps.css", __FILE__ ) );
+
+  $locations = array();
+
+  if ( array_key_exists( "id", $atts ) ) {
+    // load location by Id
+    $new_location = MSGPS_Location::get_location_by_id( $atts['id'] );
+    $new_location->fetch_place_hours();
+
+    $locations[] = $new_location;
+
+  } else {
+    // load all locations
+    $post_ids = get_posts(array('post_type' => 'wp-location', 'post_status' => 'publish', 'fields' => 'ids'));
+    foreach ($post_ids as $post_id){
+
+      $new_location = MSGPS_Location::get_location_by_id($post_id);
+      $new_location->fetch_place_hours();
+
+      $locations[] = $new_location;
+
+    }
+  }
+
+  if ( empty( $locations )) {
+    return;
+  }
+
+  $style = $defaulted_atts["style"];
+  $class = $defaulted_atts["class"];
+
+  switch ( $defaulted_atts['type'] ) {
+    case 'long':
+      include( 'templates/template-location-hours-long.php' );
+      break;
+    case 'short':
+      include( 'templates/template-location-hours-short.php' );
+      break;
+    case 'today':
+      include( 'templates/template-location-hours-today.php' );
+      break;
+  }
+}
+
+// Shortcode to Output condensed location hours
+function msgps_hours_short_shortcode( $atts = [] ) {
+  if(empty($atts)){
+    $atts = array();
+  }
+
+  $atts["type"] = "short";
+
+  return msgps_hours_shortcode( $atts );
+}
+
+// Shortcode to Output location hours without condensing hours that are the same
+function msgps_hours_long_shortcode( $atts = [] ) {
+  if(empty($atts)){
+    $atts = array();
+  }
+  $atts["type"] = "long";
+
+  return msgps_hours_shortcode( $atts );
+
+}
+
+// Shortcode to Output location hours for the current day
+function msgps_hours_today_shortcode( $atts = [] ) {
+  if(empty($atts)){
+    $atts = array();
+  }
+  $atts["type"] = "today";
+
+  return msgps_hours_shortcode( $atts );
+
 }
