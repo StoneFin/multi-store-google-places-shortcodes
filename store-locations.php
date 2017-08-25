@@ -295,18 +295,21 @@ if ( array_key_exists( "id", $atts ) ) {
   $style = $defaulted_atts["style"];
   $class = $defaulted_atts["class"];
 
-  $html = "";
+  ob_start();
   switch ( $defaulted_atts['type'] ) {
     case 'long':
-      $html = include( 'templates/template-location-hours-long.php' );
+      include( 'templates/template-location-hours-long.php' );
       break;
     case 'short':
-      $html = include( 'templates/template-location-hours-short.php' );
+      include( 'templates/template-location-hours-short.php' );
       break;
     case 'today':
-      $html = include( 'templates/template-location-hours-today.php' );
+      include( 'templates/template-location-hours-today.php' );
       break;
   }
+	$html = ob_get_contents();
+  ob_end_clean();
+  return $html;
 }
 
 // Shortcode to Output condensed location hours
