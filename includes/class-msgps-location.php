@@ -1,44 +1,44 @@
 <?php
 
 class MSGPS_Location {
-  public $id;
-  public $place_id;
-  public $alt_ids;
-  public $name;
-  public $latitude;
-  public $longitude;
-  public $address1;
-  public $address2;
-  // City
-  public $city;
-  // State
-  public $province;
-  // Country
-  public $country="United States";
-  // Zip
-  public $postal_code;
-  public $hours;
-  public $condensed_hours;
-  public $permanently_closed;
+	public $id;
+    public $place_id;
+    public $alt_ids;
+    public $name;
+	public $latitude;
+    public $longitude;
+    public $address1;
+    public $address2;
+    // City
+    public $city;
+    // State
+    public $province;
+    // Country
+    public $country="United States";
+    // Zip
+    public $postal_code;
+    public $hours;
+    public $condensed_hours;
+	public $permanently_closed;
   public $formatted_address;
 
-  public static function get_location_by_id($id){
-    $obj = new MSGPS_Location();
-    $obj->id = $id;
-    $location = get_post_meta($id, 'location', true);
-    if(empty($location)){
-      return false;
+	public static function get_location_by_id($id){
+	  $obj = new MSGPS_Location();
+	  $obj->id = $id;
+	  $location = get_post_meta($id, 'location', true);
+	  if(empty($location)){
+	    return false;
     }else{
-      $obj->place_id = $location['place_id'];
-      $obj->name = $location['name'];
-      $obj->address1 = $location['address1'];
-      $obj->address2 = $location['address2'];
-      $obj->city = $location['city'];
-      $obj->province = $location['province'];
-      $obj->country = $location['country'];
-      $obj->postal_code = $location['postal_code'];
-      $obj->latitude = $location['latitude'];
-      $obj->longitude = $location['longitude'];
+	    $obj->place_id = $location['place_id'];
+	    $obj->name = $location['name'];
+	    $obj->address1 = $location['address1'];
+	    $obj->address2 = $location['address2'];
+	    $obj->city = $location['city'];
+	    $obj->province = $location['province'];
+	    $obj->country = $location['country'];
+	    $obj->postal_code = $location['postal_code'];
+	    $obj->latitude = $location['latitude'];
+	    $obj->longitude = $location['longitude'];
       $obj->format_address();
     }
 
@@ -46,8 +46,8 @@ class MSGPS_Location {
   }
 
   public function fetch_place_hours(){
-    if(empty($this->place_id)){
-      $this->hours = false;
+	  if(empty($this->place_id)){
+	    $this->hours = false;
     }else{
       $this->hours = google_places_api::get_place_hours($this->place_id);
       $this->condense_weekday_text($this->hours);
@@ -169,10 +169,10 @@ class MSGPS_Location {
   private function format_address() {
     $formatted = "";
 
-    $formatted = $this->name. " " .$this->address1 . " " . $this->address2 . ", " . $this->city . " " . $this->province . " " . $this->postal_code;
-    if ( ! empty( $this->country ) ) {
-      $formatted .= ", " . $this->country;
-    }
+      $formatted = $this->name. " " .$this->address1 . " " . $this->address2 . ", " . $this->city . " " . $this->province . " " . $this->postal_code;
+      if ( ! empty( $this->country ) ) {
+        $formatted .= ", " . $this->country;
+      }
 
 
     $this->formatted_address = $formatted;
