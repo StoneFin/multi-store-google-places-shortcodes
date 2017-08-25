@@ -42,7 +42,7 @@ function msgps_custom_post_type() {
     'not_found'           => __( 'No locations found' ),
     'not_found_in_trash'  => __( 'No locations found in the Trash' ),
     'parent_item_colon'   => '',
-    'menu_name'           => 'Locations'
+    'menu_name'           => 'Multi-Store Locations'
   );
 
   // $args contains configuration options for the new custom post type
