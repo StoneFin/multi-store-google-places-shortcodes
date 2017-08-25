@@ -58,7 +58,7 @@ function msgps_custom_post_type() {
   );
 
   // Register the new post type with WordPress using given options
-  register_post_type( 'wp-location', $args);
+  register_post_type( 'msgps-location', $args);
 }
 
 // Register a meta_box to hold custom fields

@@ -4,12 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action('admin_menu', 'multi_store_google_places_shortcodes_settings_page');
-add_action('load_multi_store_google_places_shortcodes_options', 'multi_store_google_places_shortcodes_settings_page_save_options' );
+add_action('load-msgps-location_page_multi_store_google_places_shortcodes_options', 'multi_store_google_places_shortcodes_settings_page_save_options' );
 
 // add a Settings page beneath the Store Location custom Post type
 function multi_store_google_places_shortcodes_settings_page(){
   add_submenu_page(
-    'edit.php?post_type=wp-location',
+    'edit.php?post_type=msgps-location',
     'Multi Store Google Places ShortCodes Settings',
     'Settings',
     'manage_options',
