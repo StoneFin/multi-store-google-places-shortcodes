@@ -82,7 +82,7 @@ $states     = array(
         </tr>
         <tr class="form-field form-required">
           <td colspan="2">
-            <span name="blah"><i>Find Place ID at <a href="https://developers.google.com/places/place-id">this</a> location</i></span>
+            <span name="blah"><i>Find Place ID at <a href="https://developers.google.com/places/place-id" target="_blank">this</a> location</i></span>
           </td>
         </tr>
         <tr class="form-field form-required">

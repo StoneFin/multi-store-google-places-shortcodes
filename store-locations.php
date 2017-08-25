@@ -7,6 +7,11 @@ if ( ! class_exists( "msgps" ) ) {// this class is created in includes/class-msg
   require_once "includes/class-msgps-location.php";
 }
 
+
+if ( ! class_exists( "google_places_api" ) ) {// this class is created in includes/class-google-places-api.php and is loaded in multi-store-google-places-shortcodes.php
+  require_once( "includes/class-google-places-api.php" );
+}
+
 // Keep add_action calls grouped up here for easy viewing
 
 add_action( 'init', 'msgps_custom_post_type' );//when the plugin is initialized - we want this function to be called
@@ -19,37 +24,37 @@ add_action( 'admin_notices', 'msgps_save_notice__error' ); //when admin notices 
 // Register a custom post type with WordPress
 function msgps_custom_post_type() {
 
-    // $labels contains configuration for names
-    $labels = array(
-      'name'                => _x( 'Locations', 'Store Locations' ),
-      'singular_name'       => _x( 'Location', 'Store Location' ),
-      'add_new'             => _x( 'Add New', 'book' ),
-      'add_new_item'        => __( 'Add New Location' ),
-      'edit_item'           => __( 'Edit Location' ),
-      'new_item'            => __( 'New Location' ),
-      'all_items'           => __( 'All Locations' ),
-      'view_item'           => __( 'View Locations' ),
-      'search_items'        => __( 'Search Locations' ),
-      'not_found'           => __( 'No locations found' ),
-      'not_found_in_trash'  => __( 'No locations found in the Trash' ),
-      'parent_item_colon'   => '',
-      'menu_name'           => 'Locations'
-    );
+  // $labels contains configuration for names - basically we could use this to make our plugin muli-lingual, simply redefine this array and the UI can reflect it
+  $labels = array(
+    'name'                => _x( 'Locations', 'Store Locations' ),
+    'singular_name'       => _x( 'Location', 'Store Location' ),
+    'add_new'             => _x( 'Add New', 'book' ),
+    'add_new_item'        => __( 'Add New Location' ),
+    'edit_item'           => __( 'Edit Location' ),
+    'new_item'            => __( 'New Location' ),
+    'all_items'           => __( 'All Locations' ),
+    'view_item'           => __( 'View Locations' ),
+    'search_items'        => __( 'Search Locations' ),
+    'not_found'           => __( 'No locations found' ),
+    'not_found_in_trash'  => __( 'No locations found in the Trash' ),
+    'parent_item_colon'   => '',
+    'menu_name'           => 'Locations'
+  );
 
-    // $args contains configuration options for the new custom post type
-    $args = array(
-      'labels'              => $labels,
-      'description'         => 'Holds location data',
-      'public'              => true,
-      'menu_position'       => 5,
-      'supports'            => array('title', 'thumbnail'),
-      'has_archive'         => true,
-      'publicly_queryable'  => false,
-      'register_meta_box_cb'=> 'msgps_fields'
-    );
+  // $args contains configuration options for the new custom post type
+  $args = array(
+    'labels'              => $labels,
+    'description'         => 'Holds location data',
+    'public'              => true,
+    'menu_position'       => 5,
+    'supports'            => array('title', 'thumbnail'),
+    'has_archive'         => true,
+    'publicly_queryable'  => false,
+    'register_meta_box_cb'=> 'msgps_fields'
+  );
 
-    // Register the new post type with WordPress using given options
-    register_post_type( 'wp-location', $args);
+  // Register the new post type with WordPress using given options
+  register_post_type( 'wp-location', $args);
 }
 
 // Register a meta_box to hold custom fields
@@ -66,7 +71,7 @@ function msgps_fields(){
 
 // Provide content for the msgps meta_box
 function msgps_box_content( $post ){
-    include( 'pages/msgps-location-page.php' );
+  include( 'pages/msgps-location-page.php' );
 }
 
 // Handling wp-location post save
@@ -93,6 +98,29 @@ function msgps_box_save( $post_id ){
   // We need these fields to be populated if we want to pull Google Places information from them
   if(empty($location['address1']) || empty($location['name']) || empty($location['city']) || empty($location['province']) || empty($location['postal_code']) ){
     add_filter( 'redirect_post_location', 'add_notice_query_var', 99); // que up a warning for missing fields but still let them update
+    $missing_required_fields = true;
+  }
+
+  // Lets only try to generate lat/long if we have the required fields
+  if(!isset($missing_required_fields)){
+    if ( empty( $location['longitude'] ) || empty( $location['latitude'] ) || empty( $location['place_id'] ) ) {
+      // try and get the Geometry from Google
+      $formatted = msgps_format_address( $location );
+      $temp      = msgps_geocode( $formatted );
+    }
+
+    if($temp != null){
+      // are our coordinates empty
+      if ( ( empty( $location['latitude'] ) || empty( $location['longitude'] ) ) ) {
+        $location['latitude']  = floatval( $temp['latitude'] );
+        $location['longitude'] = floatval( $temp['longitude'] );
+      }
+
+      // dont overwrite manually entered place_id
+      if ( empty( $location['place_id'] ) ) {
+        $location['place_id'] = ! empty( $temp['place_id'] ) ? $temp['place_id'] : null;
+      }
+    }
   }
 
   update_post_meta( $post_id, 'location', $location );
@@ -103,21 +131,21 @@ function add_notice_query_var( $redirect ) {
   remove_filter( 'redirect_post_location','add_notice_query_var', 99 );
   $location = $_POST['location'];
   $args = array();
-     if(empty($location['address1'])){
-      $args['missing_address'] = 'true';
-     }
-     if( empty($location['name']) ){
-       $args['missing_name'] = 'true';
-     }
-     if( empty($location['city']) ){
-       $args['missing_city'] = 'true';
-     }
-     if( empty($location['province']) ){
-       $args['missing_province'] = 'true';
-     }
-     if( empty($location['postal_code']) ){
-       $args['missing_postal_code'] = 'true';
-     }
+  if(empty($location['address1'])){
+    $args['missing_address'] = 'true';
+  }
+  if( empty($location['name']) ){
+    $args['missing_name'] = 'true';
+  }
+  if( empty($location['city']) ){
+    $args['missing_city'] = 'true';
+  }
+  if( empty($location['province']) ){
+    $args['missing_province'] = 'true';
+  }
+  if( empty($location['postal_code']) ){
+    $args['missing_postal_code'] = 'true';
+  }
   return add_query_arg( $args, $redirect );
 }
 
@@ -147,4 +175,26 @@ function msgps_save_notice__error() {
     printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
   }
 
+}
+
+function msgps_format_address( $location ) {
+  $formatted = "";
+  if ( is_array( $location ) ) {
+    $formatted = $location['name']. " " .$location['address1'] . " " . $location['address2'] . ", " . $location['city'] . " " . $location['province'] . " " . $location['postal_code'];
+    if ( ! empty( $location['country'] ) ) {
+      $formatted .= ", " . $location['country'];
+    }
+  } elseif ( is_object( $location ) ) {
+    $formatted = $location->name. " " .$location->address1 . " " . $location->address2 . ", " . $location->city . " " . $location->province . " " . $location->postal_code;
+    if ( ! empty( $location->country ) ) {
+      $formatted .= ", " . $location->country;
+    }
+  }
+
+  return $formatted;
+}
+
+// function to geocode address, it will return NULL if unable to geocode address
+function msgps_geocode( $address ) {
+  return google_places_api::geocode( $address );
 }

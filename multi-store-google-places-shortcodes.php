@@ -3,7 +3,7 @@
 Plugin Name: Multi Store Google Places ShortCodes Settings
 Plugin URI: https://github.com/StoneFin/multi-store-google-places-shortcodes
 Description: Wordpress plugin for adding shortcodes that a)display business hours from the Google Places API and b) a Google Map with pins on each store location
-Version: 0.2 BETA
+Version: 0.3 BETA
 Author: Stone Fin Technology
 Author URI: https://www.stonefin.com
 Text Domain: multi-store-google-places-shortcodes
@@ -22,6 +22,8 @@ You can contact us at info@stonefin.com
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
+//include admin settings
+require_once ("admin/multi-store-google-places-shortcodes-admin-settings.php");
 //store location functionality
 require_once ("store-locations.php");
 ?>
