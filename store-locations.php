@@ -67,7 +67,7 @@ function msgps_fields(){
             'msgps_data_box',
             __('Location Data', 'msgps'),
             'msgps_box_content',
-            'wp-location', // In our case screen should be the same as the newly registered post_type
+            'msgps-location', // In our case screen should be the same as the newly registered post_type
             'normal',
             'high'
     );
@@ -226,7 +226,7 @@ function msgps_map_shortcode( $atts = [] ) {
 
   } else {
     // load all locations
-    $post_ids = get_posts(array('post_type' => 'wp-location', 'post_status' => 'publish', 'fields' => 'ids'));
+    $post_ids = get_posts(array('post_type' => 'msgps-location', 'post_status' => 'publish', 'fields' => 'ids'));
     foreach ($post_ids as $post_id){
 
       $new_location = MSGPS_Location::get_location_by_id($post_id);
@@ -283,7 +283,7 @@ if ( array_key_exists( "id", $atts ) ) {
 
   } else {
   // load all locations
-  $post_ids = get_posts(array('post_type' => 'wp-location', 'post_status' => 'publish', 'fields' => 'ids'));
+  $post_ids = get_posts(array('post_type' => 'msgps-location', 'post_status' => 'publish', 'fields' => 'ids'));
   foreach ($post_ids as $post_id){
 
     $new_location = MSGPS_Location::get_location_by_id($post_id);
